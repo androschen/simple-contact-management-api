@@ -1,10 +1,11 @@
-package com.restapi.controller.user;
+package com.restapi.controller.authentication;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.restapi.entity.User;
 import com.restapi.model.BaseResponse;
-import com.restapi.model.request.RegisterUserRequest;
+import com.restapi.model.request.LoginUserRequest;
+import com.restapi.model.response.TokenResponse;
 import com.restapi.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,10 +20,9 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-
 @SpringBootTest
 @AutoConfigureMockMvc
-class UserControllerTest {
+public class AuthenticationControllerTest {
    @Autowired
    private MockMvc mockMvc;
 
@@ -38,40 +38,51 @@ class UserControllerTest {
    }
 
    @Test
-   void registerSuccess() throws Exception {
-      RegisterUserRequest request = RegisterUserRequest.builder()
+   void loginSuccess() throws Exception {
+      User user = User.builder()
+              .name("TEST")
+              .username("TEST")
+              .password(BCrypt.hashpw("TEST", BCrypt.gensalt()))
+              .build();
+      userRepository.save(user);
+
+      LoginUserRequest request = LoginUserRequest.builder()
               .username("TEST")
               .password("TEST")
-              .name("TEST")
               .build();
 
-
-      mockMvc.perform(post("/api/users/register").accept(MediaType.APPLICATION_JSON)
+      mockMvc.perform(post("/api/auth/login").accept(MediaType.APPLICATION_JSON)
                       .contentType(MediaType.APPLICATION_JSON)
                       .content(objectMapper.writeValueAsString(request)))
               .andExpectAll(status().isOk())
               .andDo(result -> {
-                 BaseResponse<String> response = objectMapper.readValue(result.getResponse()
+                 BaseResponse<TokenResponse> response = objectMapper.readValue(result.getResponse()
                          .getContentAsString(), new TypeReference<>() {
                  });
 
                  assertTrue(response.isSuccess());
+                 assertNotNull(response.getData().getToken());
+                 assertNotNull(response.getData().getExpiredAt());
+                 assertNull(response.getErrors());
+
+                 User userInDb = userRepository.findById("TEST").orElse(null);
+                 assertNotNull(userInDb);
+                 assertEquals(userInDb.getToken(), response.getData().getToken());
+                 assertEquals(userInDb.getTokenExpiredAt(), response.getData().getExpiredAt());
               });
    }
 
    @Test
-   void registerBadRequest() throws Exception {
-      RegisterUserRequest request = RegisterUserRequest.builder()
-              .username("")
+   void loginFailedUserNotFound() throws Exception {
+      LoginUserRequest request = LoginUserRequest.builder()
+              .username("TEST")
               .password("TEST")
-              .name("")
               .build();
 
-
-      mockMvc.perform(post("/api/users/register").accept(MediaType.APPLICATION_JSON)
+      mockMvc.perform(post("/api/auth/login").accept(MediaType.APPLICATION_JSON)
                       .contentType(MediaType.APPLICATION_JSON)
                       .content(objectMapper.writeValueAsString(request)))
-              .andExpectAll(status().isBadRequest())
+              .andExpectAll(status().isUnauthorized())
               .andDo(result -> {
                  BaseResponse<String> response = objectMapper.readValue(result.getResponse()
                          .getContentAsString(), new TypeReference<>() {
@@ -83,24 +94,23 @@ class UserControllerTest {
    }
 
    @Test
-   void registerDuplicate() throws Exception {
+   void loginFailedWrongPassword() throws Exception {
       User user = User.builder()
+              .name("TEST")
               .username("TEST")
               .password(BCrypt.hashpw("TEST", BCrypt.gensalt()))
-              .name("TEST")
               .build();
       userRepository.save(user);
 
-      RegisterUserRequest request = RegisterUserRequest.builder()
+      LoginUserRequest request = LoginUserRequest.builder()
               .username("TEST")
-              .password("TEST")
-              .name("TEST")
+              .password("WRONG")
               .build();
 
-      mockMvc.perform(post("/api/users/register").accept(MediaType.APPLICATION_JSON)
+      mockMvc.perform(post("/api/auth/login").accept(MediaType.APPLICATION_JSON)
                       .contentType(MediaType.APPLICATION_JSON)
                       .content(objectMapper.writeValueAsString(request)))
-              .andExpectAll(status().isBadRequest())
+              .andExpectAll(status().isUnauthorized())
               .andDo(result -> {
                  BaseResponse<String> response = objectMapper.readValue(result.getResponse()
                          .getContentAsString(), new TypeReference<>() {

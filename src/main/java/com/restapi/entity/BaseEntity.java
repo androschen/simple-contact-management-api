@@ -7,6 +7,7 @@ import javax.persistence.Column;
 import java.util.Date;
 
 public class BaseEntity {
+    //TODO insert to table
     public static final String COLUMN_MARK_FOR_DELETE = "MARK_FOR_DELETE";
     public static final String COLUMN_CREATED_BY = "CREATED_BY";
     public static final String COLUMN_CREATED_DATE = "CREATED_DATE";

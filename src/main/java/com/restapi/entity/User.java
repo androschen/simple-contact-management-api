@@ -1,13 +1,11 @@
 package com.restapi.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 import java.util.List;
 
+@EqualsAndHashCode(callSuper = true)
 @Entity
 @Builder
 @Data
@@ -23,7 +21,7 @@ public class User extends BaseEntity{
     private String name;
     private String token;
     @Column(name = User.COLUMN_TOKEN_EXPIRED_AT)
-    private String tokenExpiredAt;
+    private Long tokenExpiredAt;
     @OneToMany(mappedBy = "user")
     private List<Contact> contacts;
 }

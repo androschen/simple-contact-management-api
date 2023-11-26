@@ -5,6 +5,7 @@ import com.restapi.entity.User;
 import com.restapi.exception.ApiException;
 import com.restapi.model.request.RegisterUserRequest;
 import com.restapi.repository.UserRepository;
+import com.restapi.service.validation.ValidationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCrypt;
@@ -24,15 +25,11 @@ public class UserServiceBean implements UserService {
     private UserRepository userRepository;
 
     @Autowired
-    private Validator validator;
+    private ValidationService validationService;
 
     @Transactional
     public void register(RegisterUserRequest request) {
-        Set<ConstraintViolation<RegisterUserRequest>> constraintViolation = validator.validate(request);
-
-        if (!constraintViolation.isEmpty()) {
-            throw new ConstraintViolationException(constraintViolation);
-        }
+        validationService.validate(request);
 
         if (userRepository.existsById(request.getUsername())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, ErrorMessages.ERR_USERNAME_IS_EXIST);
