@@ -4,6 +4,7 @@ import com.restapi.constant.ErrorMessages;
 import com.restapi.entity.User;
 import com.restapi.exception.ApiException;
 import com.restapi.model.request.RegisterUserRequest;
+import com.restapi.model.response.UserResponse;
 import com.restapi.repository.UserRepository;
 import com.restapi.service.validation.ValidationService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,5 +43,12 @@ public class UserServiceBean implements UserService {
                 .build();
 
         userRepository.save(user);
+    }
+
+    public UserResponse get(User user) {
+        return UserResponse.builder()
+                .username(user.getUsername())
+                .name(user.getName())
+                .build();
     }
 }
