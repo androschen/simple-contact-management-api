@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.restapi.entity.User;
 import com.restapi.model.BaseResponse;
 import com.restapi.model.request.RegisterUserRequest;
+import com.restapi.model.request.UpdateUserRequest;
 import com.restapi.model.response.UserResponse;
 import com.restapi.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,8 +18,7 @@ import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
@@ -134,8 +134,10 @@ class UserControllerTest {
 
                  assertTrue(response.isSuccess());
                  assertNull(response.getErrors());
-                 assertNotNull(response.getData().getName());
-                 assertNotNull(response.getData().getUsername());
+                 assertNotNull(response.getData()
+                         .getName());
+                 assertNotNull(response.getData()
+                         .getUsername());
               });
    }
 
@@ -180,6 +182,66 @@ class UserControllerTest {
       userRepository.save(user);
 
       mockMvc.perform(get("/api/users/current").accept(MediaType.APPLICATION_JSON))
+              .andExpectAll(status().isUnauthorized())
+              .andDo(result -> {
+                 BaseResponse<String> response = objectMapper.readValue(result.getResponse()
+                         .getContentAsString(), new TypeReference<>() {
+                 });
+
+                 assertFalse(response.isSuccess());
+                 assertNotNull(response.getErrors());
+              });
+   }
+
+   @Test
+   void userUpdateSuccess() throws Exception {
+      User user = User.builder()
+              .username("TEST")
+              .password(BCrypt.hashpw("TEST", BCrypt.gensalt()))
+              .name("TEST")
+              .token("TEST")
+              .tokenExpiredAt(System.currentTimeMillis() + (1000 * 60 * 60))
+              .build();
+      userRepository.save(user);
+
+      UpdateUserRequest request = UpdateUserRequest.builder()
+              .name("TEST UPDATE")
+              .password("TEST UPDATE")
+              .build();
+
+      mockMvc.perform(patch("/api/users/current").accept(MediaType.APPLICATION_JSON)
+                      .contentType(MediaType.APPLICATION_JSON)
+                      .content(objectMapper.writeValueAsString(request))
+                      .header("X-API-TOKEN", user.getToken()))
+              .andExpectAll(status().isOk())
+              .andDo(result -> {
+                 BaseResponse<UserResponse> response = objectMapper.readValue(result.getResponse()
+                         .getContentAsString(), new TypeReference<>() {
+                 });
+
+                 assertTrue(response.isSuccess());
+                 assertNull(response.getErrors());
+                 assertEquals(user.getUsername(), response.getData()
+                         .getUsername());
+                 assertEquals(request.getName(), response.getData()
+                         .getName());
+
+                 User userDB = userRepository.findById(user.getUsername()).orElse(null);
+                 assertNotNull(userDB);
+                 assertTrue(BCrypt.checkpw("TEST UPDATE", userDB.getPassword()));
+              });
+   }
+
+   @Test
+   void userUpdateUnauthorizedWithoutToken() throws Exception {
+      UpdateUserRequest request = UpdateUserRequest.builder()
+              .name("TEST")
+              .password("TEST")
+              .build();
+
+      mockMvc.perform(patch("/api/users/current").accept(MediaType.APPLICATION_JSON)
+                      .contentType(MediaType.APPLICATION_JSON)
+                      .content(objectMapper.writeValueAsString(request)))
               .andExpectAll(status().isUnauthorized())
               .andDo(result -> {
                  BaseResponse<String> response = objectMapper.readValue(result.getResponse()
