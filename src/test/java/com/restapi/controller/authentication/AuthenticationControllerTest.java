@@ -17,7 +17,7 @@ import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -110,6 +110,50 @@ public class AuthenticationControllerTest {
       mockMvc.perform(post("/api/auth/login").accept(MediaType.APPLICATION_JSON)
                       .contentType(MediaType.APPLICATION_JSON)
                       .content(objectMapper.writeValueAsString(request)))
+              .andExpectAll(status().isUnauthorized())
+              .andDo(result -> {
+                 BaseResponse<String> response = objectMapper.readValue(result.getResponse()
+                         .getContentAsString(), new TypeReference<>() {
+                 });
+
+                 assertFalse(response.isSuccess());
+                 assertNotNull(response.getErrors());
+              });
+   }
+
+   @Test
+   void logoutSuccess() throws Exception {
+      User user = User.builder()
+              .username("TEST")
+              .password(BCrypt.hashpw("TEST", BCrypt.gensalt()))
+              .name("TEST")
+              .token("TEST")
+              .tokenExpiredAt(System.currentTimeMillis() + (1000 * 60 * 60))
+              .build();
+      userRepository.save(user);
+
+      mockMvc.perform(delete("/api/auth/logout").accept(MediaType.APPLICATION_JSON)
+                      .header("X-API-TOKEN",user.getToken()))
+              .andExpectAll(status().isOk())
+              .andDo(result -> {
+                 BaseResponse<String> response = objectMapper.readValue(result.getResponse()
+                         .getContentAsString(), new TypeReference<>() {
+                 });
+
+                 assertTrue(response.isSuccess());
+                 assertNull(response.getErrors());
+                 assertEquals("OK", response.getData());
+
+                 User userDb = userRepository.findById(user.getUsername()).orElse(null);
+                 assertNotNull(userDb);
+                 assertNull(userDb.getToken());
+                 assertNull(userDb.getTokenExpiredAt());
+              });
+   }
+
+   @Test
+   void logoutFailed() throws Exception {
+      mockMvc.perform(delete("/api/auth/logout").accept(MediaType.APPLICATION_JSON))
               .andExpectAll(status().isUnauthorized())
               .andDo(result -> {
                  BaseResponse<String> response = objectMapper.readValue(result.getResponse()

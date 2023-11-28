@@ -43,4 +43,12 @@ public class AuthenticationServiceBean implements AuthenticationService {
 
       throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Username or password wrong");
    }
+
+   @Transactional
+   public void logout(User user) {
+      user.setToken(null);
+      user.setTokenExpiredAt(null);
+
+      userRepository.save(user);
+   }
 }
