@@ -1,10 +1,17 @@
 package com.restapi.entity;
 
+import lombok.*;
+
 import javax.persistence.*;
 import java.util.List;
 
 
+@EqualsAndHashCode(callSuper = true)
 @Entity
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "contact")
 public class Contact extends BaseEntity{
     private static final String TABLE_NAME = "contact";
