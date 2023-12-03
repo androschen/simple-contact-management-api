@@ -113,26 +113,22 @@ public class ContactControllerTest {
 
    @Test
    void getAllContactsSuccess() throws Exception {
-      User user = userRepository.findById("TEST").orElseThrow();
+      User user = userRepository.findById("TEST")
+              .orElseThrow();
 
-      Contact contact = Contact.builder()
-              .user(user)
-              .id(UUID.randomUUID().toString())
-              .firstName("TEST")
-              .lastName("TEST")
-              .email("TEST@email.com")
-              .phone("081234567")
-              .build();
-      contactRepository.save(contact);
-      Contact contact2 = Contact.builder()
-              .user(user)
-              .id(UUID.randomUUID().toString())
-              .firstName("TEST2")
-              .lastName("TEST2")
-              .email("TEST2@email.com")
-              .phone("0812365672")
-              .build();
-      contactRepository.save(contact2);
+      int totalContact = 2;
+      for (int i = 0; i < totalContact; i++) {
+         Contact contact = Contact.builder()
+                 .user(user)
+                 .id(UUID.randomUUID()
+                         .toString())
+                 .firstName("TEST" + i)
+                 .lastName("TEST" + i)
+                 .email("TEST" + i + "@email.com")
+                 .phone("081234567" + i)
+                 .build();
+         contactRepository.save(contact);
+      }
 
       mockMvc.perform(get("/api/contacts").accept(MediaType.APPLICATION_JSON)
                       .header("X-API-TOKEN", "TEST"))
@@ -145,29 +141,31 @@ public class ContactControllerTest {
                  assertTrue(response.isSuccess());
                  assertNull(response.getErrors());
                  assertNotNull(response.getData());
-                 assertEquals(contact.getFirstName(), response.getData().get(0).getFirstName());
-                 assertEquals(contact2.getFirstName(), response.getData().get(1).getFirstName());
+                 assertEquals(totalContact, response.getData().size());
+                 assertEquals(0, response.getPaging().getCurrentPage());
+                 assertEquals(1, response.getPaging().getTotalPage());
+                 assertEquals(10, response.getPaging().getSize());
               });
    }
 
    @Test
    void getAllContactsUnauthorized() throws Exception {
-      Contact contact = Contact.builder()
-              .id(UUID.randomUUID().toString())
-              .firstName("TEST")
-              .lastName("TEST")
-              .email("TEST@email.com")
-              .phone("081234567")
-              .build();
-      contactRepository.save(contact);
-      Contact contact2 = Contact.builder()
-              .id(UUID.randomUUID().toString())
-              .firstName("TEST2")
-              .lastName("TEST2")
-              .email("TEST2@email.com")
-              .phone("0812365672")
-              .build();
-      contactRepository.save(contact2);
+      User user = userRepository.findById("TEST")
+              .orElseThrow();
+
+      int totalContact = 2;
+      for (int i = 0; i < totalContact; i++) {
+         Contact contact = Contact.builder()
+                 .user(user)
+                 .id(UUID.randomUUID()
+                         .toString())
+                 .firstName("TEST" + i)
+                 .lastName("TEST" + i)
+                 .email("TEST" + i + "@email.com")
+                 .phone("081234567" + i)
+                 .build();
+         contactRepository.save(contact);
+      }
 
       mockMvc.perform(get("/api/contacts").accept(MediaType.APPLICATION_JSON))
               .andExpectAll(status().isUnauthorized())
@@ -182,12 +180,164 @@ public class ContactControllerTest {
    }
 
    @Test
+   void getSearchByNameContactsSuccess() throws Exception {
+      User user = userRepository.findById("TEST")
+              .orElseThrow();
+
+      int totalContact = 100;
+      for (int i = 0; i < totalContact; i++) {
+         Contact contact = Contact.builder()
+                 .user(user)
+                 .id(UUID.randomUUID()
+                         .toString())
+                 .firstName("TEST" + i)
+                 .lastName("TEST" + i)
+                 .email("TEST" + i + "@email.com")
+                 .phone("081234567" + i)
+                 .build();
+         contactRepository.save(contact);
+      }
+
+      mockMvc.perform(get("/api/contacts").accept(MediaType.APPLICATION_JSON)
+                      .header("X-API-TOKEN", "TEST")
+                      .queryParam("name", "TEST"))
+              .andExpectAll(status().isOk())
+              .andDo(result -> {
+                 BaseResponse<List<ContactResponse>> response = objectMapper.readValue(result.getResponse()
+                         .getContentAsString(), new TypeReference<>() {
+                 });
+
+                 assertTrue(response.isSuccess());
+                 assertNull(response.getErrors());
+                 assertNotNull(response.getData());
+                 assertEquals(0, response.getPaging().getCurrentPage());
+                 assertEquals(10, response.getPaging().getSize());
+                 assertEquals(10, response.getPaging().getTotalPage());
+              });
+   }
+
+   @Test
+   void getSearchByEmailContactsSuccess() throws Exception {
+      User user = userRepository.findById("TEST")
+              .orElseThrow();
+
+      int totalContact = 50;
+      for (int i = 0; i < totalContact; i++) {
+         Contact contact = Contact.builder()
+                 .user(user)
+                 .id(UUID.randomUUID()
+                         .toString())
+                 .firstName("TEST" + i)
+                 .lastName("TEST" + i)
+                 .email("TEST" + i + "@email.com")
+                 .phone("081234567" + i)
+                 .build();
+         contactRepository.save(contact);
+      }
+
+      mockMvc.perform(get("/api/contacts").accept(MediaType.APPLICATION_JSON)
+                      .header("X-API-TOKEN", "TEST")
+                      .queryParam("email", "@email.com"))
+              .andExpectAll(status().isOk())
+              .andDo(result -> {
+                 BaseResponse<List<ContactResponse>> response = objectMapper.readValue(result.getResponse()
+                         .getContentAsString(), new TypeReference<>() {
+                 });
+
+                 assertTrue(response.isSuccess());
+                 assertNull(response.getErrors());
+                 assertEquals(10, response.getData().size());
+                 assertEquals(0, response.getPaging().getCurrentPage());
+                 assertEquals(10, response.getPaging().getSize());
+                 assertEquals(5, response.getPaging().getTotalPage());
+              });
+   }
+
+   @Test
+   void getSearchByPhoneContactsSuccess() throws Exception {
+      User user = userRepository.findById("TEST")
+              .orElseThrow();
+
+      int totalContact = 20;
+      for (int i = 0; i < totalContact; i++) {
+         Contact contact = Contact.builder()
+                 .user(user)
+                 .id(UUID.randomUUID()
+                         .toString())
+                 .firstName("TEST" + i)
+                 .lastName("TEST" + i)
+                 .email("TEST" + i + "@email.com")
+                 .phone("081234567" + i)
+                 .build();
+         contactRepository.save(contact);
+      }
+
+      mockMvc.perform(get("/api/contacts").accept(MediaType.APPLICATION_JSON)
+                      .header("X-API-TOKEN", "TEST")
+                      .queryParam("phone", "08"))
+              .andExpectAll(status().isOk())
+              .andDo(result -> {
+                 BaseResponse<List<ContactResponse>> response = objectMapper.readValue(result.getResponse()
+                         .getContentAsString(), new TypeReference<>() {
+                 });
+
+                 assertTrue(response.isSuccess());
+                 assertNull(response.getErrors());
+                 assertEquals(10, response.getData().size());
+                 assertEquals(0, response.getPaging().getCurrentPage());
+                 assertEquals(10, response.getPaging().getSize());
+                 assertEquals(2, response.getPaging().getTotalPage());
+              });
+   }
+
+   @Test
+   void getSearchByContactsOverflow() throws Exception {
+      User user = userRepository.findById("TEST")
+              .orElseThrow();
+
+      int totalContact = 20;
+      for (int i = 0; i < totalContact; i++) {
+         Contact contact = Contact.builder()
+                 .user(user)
+                 .id(UUID.randomUUID()
+                         .toString())
+                 .firstName("TEST" + i)
+                 .lastName("TEST" + i)
+                 .email("TEST" + i + "@email.com")
+                 .phone("081234567" + i)
+                 .build();
+         contactRepository.save(contact);
+      }
+
+      mockMvc.perform(get("/api/contacts").accept(MediaType.APPLICATION_JSON)
+                      .header("X-API-TOKEN", "TEST")
+                      .queryParam("phone", "08")
+                      .queryParam("page", "100"))
+              .andExpectAll(status().isOk())
+              .andDo(result -> {
+                 BaseResponse<List<ContactResponse>> response = objectMapper.readValue(result.getResponse()
+                         .getContentAsString(), new TypeReference<>() {
+                 });
+
+                 assertTrue(response.isSuccess());
+                 assertNull(response.getErrors());
+                 assertEquals(0, response.getData().size());
+                 assertEquals(100, response.getPaging().getCurrentPage());
+                 assertEquals(10, response.getPaging().getSize());
+                 assertEquals(2, response.getPaging().getTotalPage());
+              });
+   }
+
+
+   @Test
    void getContactSuccess() throws Exception {
-      User user = userRepository.findById("TEST").orElseThrow();
+      User user = userRepository.findById("TEST")
+              .orElseThrow();
 
       Contact contact = Contact.builder()
               .user(user)
-              .id(UUID.randomUUID().toString())
+              .id(UUID.randomUUID()
+                      .toString())
               .firstName("TEST")
               .lastName("TEST")
               .email("TEST@email.com")
@@ -205,15 +355,21 @@ public class ContactControllerTest {
 
                  assertTrue(response.isSuccess());
                  assertNull(response.getErrors());
-                 assertEquals(contact.getFirstName(), response.getData().getFirstName());
-                 assertEquals(contact.getLastName(), response.getData().getLastName());
-                 assertEquals(contact.getPhone(), response.getData().getPhone());
-                 assertEquals(contact.getEmail(), response.getData().getEmail());
+                 assertEquals(contact.getFirstName(), response.getData()
+                         .getFirstName());
+                 assertEquals(contact.getLastName(), response.getData()
+                         .getLastName());
+                 assertEquals(contact.getPhone(), response.getData()
+                         .getPhone());
+                 assertEquals(contact.getEmail(), response.getData()
+                         .getEmail());
               });
    }
+
    @Test
    void getContactNotFound() throws Exception {
-      User user = userRepository.findById("TEST").orElseThrow();
+      User user = userRepository.findById("TEST")
+              .orElseThrow();
 
       Contact contact = Contact.builder()
               .user(user)
@@ -240,11 +396,13 @@ public class ContactControllerTest {
 
    @Test
    void updateContactsSuccess() throws Exception {
-      User user = userRepository.findById("TEST").orElseThrow();
+      User user = userRepository.findById("TEST")
+              .orElseThrow();
 
       Contact contact = Contact.builder()
               .user(user)
-              .id(UUID.randomUUID().toString())
+              .id(UUID.randomUUID()
+                      .toString())
               .firstName("TEST")
               .lastName("TEST")
               .email("TEST@email.com")
@@ -271,9 +429,12 @@ public class ContactControllerTest {
                  assertTrue(response.isSuccess());
                  assertNull(response.getErrors());
                  assertNotNull(response.getData());
-                 assertEquals(request.getEmail(), response.getData().getEmail());
-                 assertEquals(request.getFirstName(), response.getData().getFirstName());
-                 assertEquals(request.getLastName(), response.getData().getLastName());
+                 assertEquals(request.getEmail(), response.getData()
+                         .getEmail());
+                 assertEquals(request.getFirstName(), response.getData()
+                         .getFirstName());
+                 assertEquals(request.getLastName(), response.getData()
+                         .getLastName());
               });
    }
 
@@ -303,11 +464,13 @@ public class ContactControllerTest {
 
    @Test
    void deleteContactSuccess() throws Exception {
-      User user = userRepository.findById("TEST").orElseThrow();
+      User user = userRepository.findById("TEST")
+              .orElseThrow();
 
       Contact contact = Contact.builder()
               .user(user)
-              .id(UUID.randomUUID().toString())
+              .id(UUID.randomUUID()
+                      .toString())
               .firstName("TEST")
               .lastName("TEST")
               .email("TEST@email.com")
@@ -335,7 +498,8 @@ public class ContactControllerTest {
 
    @Test
    void deleteContactNotFound() throws Exception {
-      User user = userRepository.findById("TEST").orElseThrow();
+      User user = userRepository.findById("TEST")
+              .orElseThrow();
 
       Contact contact = Contact.builder()
               .user(user)
