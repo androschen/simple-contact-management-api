@@ -21,6 +21,7 @@ import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -292,6 +293,65 @@ public class ContactControllerTest {
               .andExpectAll(status().isBadRequest())
               .andDo(result -> {
                  BaseResponse<ContactResponse> response = objectMapper.readValue(result.getResponse()
+                         .getContentAsString(), new TypeReference<>() {
+                 });
+
+                 assertFalse(response.isSuccess());
+                 assertNotNull(response.getErrors());
+              });
+   }
+
+   @Test
+   void deleteContactSuccess() throws Exception {
+      User user = userRepository.findById("TEST").orElseThrow();
+
+      Contact contact = Contact.builder()
+              .user(user)
+              .id(UUID.randomUUID().toString())
+              .firstName("TEST")
+              .lastName("TEST")
+              .email("TEST@email.com")
+              .phone("081234567")
+              .build();
+      contactRepository.save(contact);
+
+      mockMvc.perform(delete("/api/contacts/" + contact.getId()).accept(MediaType.APPLICATION_JSON)
+                      .header("X-API-TOKEN", "TEST"))
+              .andExpectAll(status().isOk())
+              .andDo(result -> {
+                 BaseResponse<String> response = objectMapper.readValue(result.getResponse()
+                         .getContentAsString(), new TypeReference<>() {
+                 });
+
+                 assertTrue(response.isSuccess());
+                 assertNull(response.getErrors());
+                 assertEquals("OK", response.getData());
+
+                 Optional<Contact> contactInDb = contactRepository.findById(contact.getId());
+
+                 assertEquals(Optional.empty(), contactInDb);
+              });
+   }
+
+   @Test
+   void deleteContactNotFound() throws Exception {
+      User user = userRepository.findById("TEST").orElseThrow();
+
+      Contact contact = Contact.builder()
+              .user(user)
+              .id("TEST")
+              .firstName("TEST")
+              .lastName("TEST")
+              .email("TEST@email.com")
+              .phone("081234567")
+              .build();
+      contactRepository.save(contact);
+
+      mockMvc.perform(delete("/api/contacts/235132").accept(MediaType.APPLICATION_JSON)
+                      .header("X-API-TOKEN", "TEST"))
+              .andExpectAll(status().isNotFound())
+              .andDo(result -> {
+                 BaseResponse<String> response = objectMapper.readValue(result.getResponse()
                          .getContentAsString(), new TypeReference<>() {
                  });
 

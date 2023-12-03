@@ -13,4 +13,5 @@ public interface ContactService {
    List<Contact> getAll(User user);
    Contact get(User user, String id);
    Contact update(User user, UpdateContactRequest request);
+   void delete(User user, String id);
 }
