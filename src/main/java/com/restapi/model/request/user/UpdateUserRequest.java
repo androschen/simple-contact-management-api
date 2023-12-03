@@ -1,4 +1,4 @@
-package com.restapi.model.request;
+package com.restapi.model.request.user;
 
 import lombok.Builder;
 import lombok.Data;
@@ -8,10 +8,10 @@ import javax.validation.constraints.Size;
 
 @Data
 @Builder
-public class LoginUserRequest {
+public class UpdateUserRequest {
    @NotBlank
    @Size(max = 100)
-   private String username;
+   private String name;
    @NotBlank
    @Size(max = 100)
    private String password;

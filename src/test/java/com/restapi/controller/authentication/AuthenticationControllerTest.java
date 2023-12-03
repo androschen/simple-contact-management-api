@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.restapi.entity.User;
 import com.restapi.model.BaseResponse;
-import com.restapi.model.request.LoginUserRequest;
+import com.restapi.model.request.user.LoginUserRequest;
 import com.restapi.model.response.TokenResponse;
 import com.restapi.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;

@@ -1,4 +1,4 @@
-package com.restapi.model.request;
+package com.restapi.model.request.user;
 
 import lombok.Builder;
 import lombok.Data;

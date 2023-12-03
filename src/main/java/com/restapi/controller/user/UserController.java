@@ -2,8 +2,8 @@ package com.restapi.controller.user;
 
 import com.restapi.entity.User;
 import com.restapi.model.BaseResponse;
-import com.restapi.model.request.RegisterUserRequest;
-import com.restapi.model.request.UpdateUserRequest;
+import com.restapi.model.request.user.RegisterUserRequest;
+import com.restapi.model.request.user.UpdateUserRequest;
 import com.restapi.model.response.UserResponse;
 import com.restapi.service.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;

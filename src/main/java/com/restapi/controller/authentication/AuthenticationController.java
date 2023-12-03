@@ -2,7 +2,7 @@ package com.restapi.controller.authentication;
 
 import com.restapi.entity.User;
 import com.restapi.model.BaseResponse;
-import com.restapi.model.request.LoginUserRequest;
+import com.restapi.model.request.user.LoginUserRequest;
 import com.restapi.model.response.TokenResponse;
 import com.restapi.service.authentication.AuthenticationService;
 import org.springframework.beans.factory.annotation.Autowired;

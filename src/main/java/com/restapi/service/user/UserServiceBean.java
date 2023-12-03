@@ -2,9 +2,8 @@ package com.restapi.service.user;
 
 import com.restapi.constant.ErrorMessages;
 import com.restapi.entity.User;
-import com.restapi.exception.ApiException;
-import com.restapi.model.request.RegisterUserRequest;
-import com.restapi.model.request.UpdateUserRequest;
+import com.restapi.model.request.user.RegisterUserRequest;
+import com.restapi.model.request.user.UpdateUserRequest;
 import com.restapi.model.response.UserResponse;
 import com.restapi.repository.UserRepository;
 import com.restapi.service.validation.ValidationService;
@@ -15,12 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.transaction.Transactional;
-import javax.validation.ConstraintViolation;
-import javax.validation.ConstraintViolationException;
-import javax.validation.Validator;
 
 import java.util.Objects;
-import java.util.Set;
 
 @Service
 public class UserServiceBean implements UserService {

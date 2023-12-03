@@ -1,7 +1,7 @@
 package com.restapi.service.authentication;
 
 import com.restapi.entity.User;
-import com.restapi.model.request.LoginUserRequest;
+import com.restapi.model.request.user.LoginUserRequest;
 import com.restapi.model.response.TokenResponse;
 import com.restapi.repository.UserRepository;
 import com.restapi.service.validation.ValidationService;

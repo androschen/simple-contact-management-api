@@ -1,6 +1,5 @@
 package com.restapi.service.validation;
 
-import com.restapi.model.request.RegisterUserRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

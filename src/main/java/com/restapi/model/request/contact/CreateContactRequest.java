@@ -1,4 +1,4 @@
-package com.restapi.model.request;
+package com.restapi.model.request.contact;
 
 import lombok.Builder;
 import lombok.Data;
