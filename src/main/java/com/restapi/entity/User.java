@@ -22,6 +22,6 @@ public class User extends BaseEntity{
     private String token;
     @Column(name = User.COLUMN_TOKEN_EXPIRED_AT)
     private Long tokenExpiredAt;
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
     private List<Contact> contacts;
 }

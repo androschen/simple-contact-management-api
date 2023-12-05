@@ -29,6 +29,6 @@ public class Contact extends BaseEntity{
     @ManyToOne
     @JoinColumn(name = "username", referencedColumnName = "username")
     private User user;
-    @OneToMany(mappedBy = "contact")
+    @OneToMany(mappedBy = "contact", cascade = CascadeType.REMOVE)
     private List<Address> addresses;
 }
