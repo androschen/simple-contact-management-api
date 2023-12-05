@@ -102,7 +102,7 @@ public class ContactControllerTest {
                       .content(objectMapper.writeValueAsString(request)))
               .andExpectAll(status().isBadRequest())
               .andDo(result -> {
-                 BaseResponse<UserResponse> response = objectMapper.readValue(result.getResponse()
+                 BaseResponse<String> response = objectMapper.readValue(result.getResponse()
                          .getContentAsString(), new TypeReference<>() {
                  });
 

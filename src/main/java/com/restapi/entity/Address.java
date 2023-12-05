@@ -1,7 +1,14 @@
 package com.restapi.entity;
 
+import lombok.*;
+
 import javax.persistence.*;
 
+@EqualsAndHashCode(callSuper = true)
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "addresses")
 public class Address extends BaseEntity{

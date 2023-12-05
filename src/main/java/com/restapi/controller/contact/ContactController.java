@@ -1,13 +1,17 @@
 package com.restapi.controller.contact;
 
+import com.restapi.entity.Address;
 import com.restapi.entity.Contact;
 import com.restapi.entity.User;
 import com.restapi.model.BaseResponse;
+import com.restapi.model.request.address.CreateAddressRequest;
 import com.restapi.model.request.contact.CreateContactRequest;
 import com.restapi.model.request.contact.SearchContactRequest;
 import com.restapi.model.request.contact.UpdateContactRequest;
+import com.restapi.model.response.AddressResponse;
 import com.restapi.model.response.ContactResponse;
 import com.restapi.model.response.PagingResponse;
+import com.restapi.service.address.AddressService;
 import com.restapi.service.contact.ContactService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +27,9 @@ import java.util.stream.Collectors;
 public class ContactController {
    @Autowired
    private ContactService contactService;
+
+   @Autowired
+   private AddressService addressService;
 
    @Autowired
    private ModelMapper modelMapper;
@@ -101,4 +108,16 @@ public class ContactController {
               .build();
    }
 
+   @PostMapping(value = "/{contactId}/address", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+   public BaseResponse<AddressResponse> addAddress(User user, @RequestBody CreateAddressRequest request,
+                                                   @PathVariable("contactId") String contactId) {
+      request.setContactId(contactId);
+      Address address = addressService.create(user, request);
+      AddressResponse response = modelMapper.map(address, AddressResponse.class);
+
+      return BaseResponse.<AddressResponse>builder()
+              .data(response)
+              .success(true)
+              .build();
+   }
 }
