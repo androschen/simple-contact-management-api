@@ -10,8 +10,8 @@ import javax.validation.constraints.Size;
 
 @Data
 @Builder
-//@NoArgsConstructor
-//@AllArgsConstructor
+@NoArgsConstructor
+@AllArgsConstructor
 public class AddressResponse {
    private String id;
    private String street;

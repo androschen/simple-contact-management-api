@@ -3,6 +3,7 @@ package com.restapi.controller.address;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.restapi.entity.Address;
 import com.restapi.entity.Contact;
 import com.restapi.entity.User;
 import com.restapi.model.BaseResponse;
@@ -21,7 +22,7 @@ import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -80,7 +81,7 @@ public class AddressTest {
               .build();
 
       mockMvc.perform(
-                      post("/api/contacts/" + request.getContactId() + "/address").accept(MediaType.APPLICATION_JSON)
+                      post("/api/contacts/" + request.getContactId() + "/addresses").accept(MediaType.APPLICATION_JSON)
                               .header("X-API-TOKEN", "TEST")
                               .contentType(MediaType.APPLICATION_JSON)
                               .content(objectMapper.writeValueAsString(request)))
@@ -113,7 +114,7 @@ public class AddressTest {
               .build();
 
       mockMvc.perform(
-                      post("/api/contacts/" + request.getContactId() + "/address").accept(MediaType.APPLICATION_JSON)
+                      post("/api/contacts/" + request.getContactId() + "/addresses").accept(MediaType.APPLICATION_JSON)
                               .header("X-API-TOKEN", "TEST")
                               .contentType(MediaType.APPLICATION_JSON)
                               .content(objectMapper.writeValueAsString(request)))
@@ -140,11 +141,72 @@ public class AddressTest {
               .build();
 
       mockMvc.perform(
-                      post("/api/contacts/" + request.getContactId() + "/address").accept(MediaType.APPLICATION_JSON)
+                      post("/api/contacts/" + request.getContactId() + "/addresses").accept(MediaType.APPLICATION_JSON)
                               .header("X-API-TOKEN", "TEST")
                               .contentType(MediaType.APPLICATION_JSON)
                               .content(objectMapper.writeValueAsString(request)))
               .andExpectAll(status().isBadRequest())
+              .andDo(result -> {
+                 BaseResponse<String> response = objectMapper.readValue(result.getResponse()
+                         .getContentAsString(), new TypeReference<>() {
+                 });
+
+                 assertFalse(response.isSuccess());
+                 assertNotNull(response.getErrors());
+              });
+   }
+
+   @Test
+   void getContactAddressSuccess() throws Exception {
+      Contact contact = contactRepository.findById("TEST").orElseThrow();
+
+      Address address = Address.builder()
+              .country("COUNTRY")
+              .city("CITY")
+              .province("PROVINCE")
+              .street("STREET")
+              .postalCode("POSTALCODE")
+              .id("TEST")
+              .contact(contact)
+              .build();
+      addressRepository.save(address);
+
+      mockMvc.perform(
+                      get("/api/contacts/TEST/addresses/" + address.getId()).accept(MediaType.APPLICATION_JSON)
+                              .header("X-API-TOKEN", "TEST"))
+              .andExpectAll(status().isOk())
+              .andDo(result -> {
+                 BaseResponse<AddressResponse> response = objectMapper.readValue(result.getResponse()
+                         .getContentAsString(), new TypeReference<>() {
+                 });
+
+                 assertTrue(response.isSuccess());
+                 assertNull(response.getErrors());
+                 assertEquals(address.getCountry(), response.getData()
+                         .getCountry());
+                 assertEquals(address.getProvince(), response.getData()
+                         .getProvince());
+                 assertEquals(address.getCity(), response.getData()
+                         .getCity());
+              });
+   }
+
+   @Test
+   void getContactAddressNotFound() throws Exception {
+      Address address = Address.builder()
+              .country("COUNTRY")
+              .city("CITY")
+              .province("PROVINCE")
+              .street("STREET")
+              .postalCode("POSTALCODE")
+              .id("TEST")
+              .build();
+      addressRepository.save(address);
+
+      mockMvc.perform(
+                      get("/api/contacts/TEST/addresses/" + address.getId()).accept(MediaType.APPLICATION_JSON)
+                              .header("X-API-TOKEN", "TEST"))
+              .andExpectAll(status().isNotFound())
               .andDo(result -> {
                  BaseResponse<String> response = objectMapper.readValue(result.getResponse()
                          .getContentAsString(), new TypeReference<>() {

@@ -108,11 +108,24 @@ public class ContactController {
               .build();
    }
 
-   @PostMapping(value = "/{contactId}/address", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+   @PostMapping(value = "/{contactId}/addresses", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
    public BaseResponse<AddressResponse> addAddress(User user, @RequestBody CreateAddressRequest request,
                                                    @PathVariable("contactId") String contactId) {
       request.setContactId(contactId);
       Address address = addressService.create(user, request);
+      AddressResponse response = modelMapper.map(address, AddressResponse.class);
+
+      return BaseResponse.<AddressResponse>builder()
+              .data(response)
+              .success(true)
+              .build();
+   }
+
+   @GetMapping(value = "/{contactId}/addresses/{addressId}", produces = MediaType.APPLICATION_JSON_VALUE)
+   public BaseResponse<AddressResponse> getAddress(User user,
+                                                   @PathVariable("contactId") String contactId,
+                                                   @PathVariable("addressId") String addressId) {
+      Address address = addressService.get(user, contactId, addressId);
       AddressResponse response = modelMapper.map(address, AddressResponse.class);
 
       return BaseResponse.<AddressResponse>builder()

@@ -47,4 +47,13 @@ public class AddressServiceBean implements AddressService {
 
       return address;
    }
+
+   @Transactional
+   public Address get(User user, String contactId, String addressId) {
+      Contact contact = contactRepository.findFirstByUserAndId(user, contactId)
+              .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, ErrorMessages.ERR_CONTACT_NOT_FOUND));
+
+      return addressRepository.findFirstByContactAndId(contact, addressId)
+              .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, ErrorMessages.ERR_ADDRESS_NOT_FOUND));
+   }
 }
